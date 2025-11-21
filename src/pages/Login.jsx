@@ -6,8 +6,8 @@ import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
 export default function Login() {
-  const [username, setUsername] = useState("kasir-1");
-  const [password, setPassword] = useState("an1357@$");
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
   const { login } = useAuth();
   const [error, setError] = useState("");
   const [usernameError, setUsernameError] = useState("");
