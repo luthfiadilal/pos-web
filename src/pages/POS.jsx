@@ -27,7 +27,7 @@ import { saveCashTransaction } from "../services/cashTransaction";
 // Utils
 import { generateTransactionId } from "../utils/transactionHelper";
 //  ===> INGET!!!!!:nanti nyalain kalo gambar dah kekompresss
-// import { getImageUrl } from "../utils/imageHelper";
+import { getImageUrl } from "../utils/imageHelper";
 // Components
 import ProductList from "../components/pos/ProductList";
 import CategoryFilter from "../components/pos/CategoryFilter";
@@ -122,6 +122,7 @@ export default function POS() {
   const [isGuestModalOpen, setIsGuestModalOpen] = useState(false);
   const [showQRModal, setShowQRModal] = useState(false);
   const [qrCodeUrl, setQrCodeUrl] = useState("");
+  const [qrTotalAmount, setQrTotalAmount] = useState(0); 
   const [paymentOrderDetails, setPaymentOrderDetails] = useState(null);
   const [activeTransactionId, setActiveTransactionId] = useState(null);
   const [currentTrxNo, setCurrentTrxNo] = useState(null);
@@ -241,6 +242,7 @@ export default function POS() {
         setMemberData(null);
         setPointsToUse(0);
         setCurrentTrxNo(null);
+        setQrTotalAmount(0);
 
         setTimeout(() => {
             setShowSuccessNotification(false); 
@@ -285,9 +287,9 @@ export default function POS() {
           id: item.product_cd,
           name: item.product_nm,
           barcode: item.barcode,
-          image: item.product_file_imgserver,
+          // image: item.product_file_imgserver,
           // ===> INGET: nanti yang image ganti dengan yang udah di parsing ya, ntar pas backoffice udah bisa komppress gambar
-          // image: getImageUrl(item.product_file_img_server),
+          image: getImageUrl(item.product_file_img_server),
           stock: item.stock?.ending_qty ?? "N/A",
           isSoldOut: isSoldOut,
           price: priceInfo.sales_price || 0,
@@ -668,17 +670,17 @@ export default function POS() {
 
     try {
       const response = await processPayment(payload);
-      console.log("🧭 [POS] Response dari processPayment:", response);
+      console.log(" [POS] Response dari processPayment:", response);
 
       const qrData = response?.provider?.data?.qrContent || response.qr_string || response.qr_url;
 
       if (qrData) {
-        console.log("📷 [POS] QR Data detected:", qrData);
+        console.log(" [POS] QR Data detected:", qrData);
 
         setQrCodeUrl(qrData); 
         setCurrentTrxNo(response.trx_no);
         setShowPaymentModal(false);
-
+        setQrTotalAmount(response.total_amount || 0); 
         setShowQRModal(true);
 
         if (isDualDisplayEnabled && channel) {
@@ -966,9 +968,11 @@ export default function POS() {
         {showQRModal && (
           <QRCodeModal
             qrCodeUrl={qrCodeUrl}
+            totalAmount={qrTotalAmount}
             onClose={() => {
               setShowQRModal(false);
               setCurrentTrxNo(null);
+              setQrTotalAmount(0);
               showMessage(t("payment_cancelled"), "info");
             }}
           />

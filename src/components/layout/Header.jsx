@@ -108,9 +108,9 @@ export default function Header({
         {/* Center */}
         <div className="absolute left-1/2 transform -translate-x-1/2 flex items-center gap-4">
           <img
-            src="/images/logo/logoputih.png"
+            src="/images/logo/Logo-Putih.png"
             alt="EasyPOS Logo"
-            className="h-[80px] w-auto" // Sesuaikan tinggi logo (misalnya h-10)
+            className="h-[40px] w-auto" // Sesuaikan tinggi logo (misalnya h-10)
           />
         </div>
 

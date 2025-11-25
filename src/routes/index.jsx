@@ -17,6 +17,7 @@ const EndOfDay = lazy(() => import("../pages/EndOfDay"));
 const MejaPage = lazy(() => import("../pages/Table"));
 const Kas = lazy(() => import("../pages/Kas"));
 const CustomerDisplay = lazy(() => import("../pages/CustomerDisplay"));
+const Payout = lazy(() => import("../pages/Payout"));
 
 export default function Router() {
   return (
@@ -44,6 +45,7 @@ export default function Router() {
           <Route path="/kas" element={<Kas />} />
           <Route path="/sod" element={<StartOfDay />} />
           <Route path="/eod" element={<EndOfDay />} />
+          <Route path="/payout" element={<Payout />} />
         </Route>
       </Routes>
     </Suspense>

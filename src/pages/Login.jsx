@@ -75,9 +75,9 @@ export default function Login() {
             /> */}
 
             <img
-              src="/images/logo/poslogoepos.png"
+              src="/images/logo/Logo.png"
               alt="EasyPOS Logo"
-              className="h-[200px] w-auto"
+              className="h-[150px] w-auto pb-8 pt-4"
             />
           </div>
 

@@ -16,3 +16,23 @@ export const getToppings = (unit_cd, company_cd, branch_cd) => {
     },
   });
 };
+
+export const getToppingsStock = (unit_cd, company_cd, branch_cd) => {
+  return apiClient.get("/pos/topping-stock", {
+    params: {
+      unit_cd,
+      company_cd,
+      branch_cd,
+    },
+  });
+};
+
+export const getBomToppings = (unit_cd, company_cd, branch_cd) => {
+  return apiClient.get("/pos/topping-bom", {
+    params: {
+      unit_cd,
+      company_cd,
+      branch_cd,
+    },
+  });
+};

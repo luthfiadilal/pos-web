@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { useTranslation } from "react-i18next";
 import { getCurrencyData } from "../services/currency";
-import { checkExistingSOD, saveSOD } from "../services/cashdraw";
+import { saveSOD } from "../services/cashdraw";
 import { useMessage } from "./useMessage";
 
 export const useStartOfDay = () => {
@@ -13,8 +13,8 @@ export const useStartOfDay = () => {
   const { message, type, showMessage, hideMessage } = useMessage();
   const [tellers, setTellers] = useState([]);
   const [selectedTeller, setSelectedTeller] = useState("");
-  const [shifts, setShifts] = useState([]); 
-  const [selectedShift, setSelectedShift] = useState(""); 
+  const [shifts, setShifts] = useState([]);
+  const [selectedShift, setSelectedShift] = useState("");
   const [currencies, setCurrencies] = useState([]);
   const [selectedCurrency, setSelectedCurrency] = useState("");
   const [moneyDenoms, setMoneyDenoms] = useState([]);
@@ -125,11 +125,6 @@ export const useStartOfDay = () => {
 
     try {
       const today = new Date().toISOString().split("T")[0];
-      const checkResponse = await checkExistingSOD(user.user_id, today);
-
-      if (checkResponse.exists) {
-        throw new Error(t("errorSodExists", { name: user.name }));
-      }
 
       const selectedShiftObj = shifts.find((s) => s.shift_cd === selectedShift);
       const shiftName = selectedShiftObj ? selectedShiftObj.shift_nm : "";
@@ -183,7 +178,7 @@ export const useStartOfDay = () => {
     tellers,
     selectedTeller,
     setSelectedTeller,
-    shifts, 
+    shifts,
     selectedShift,
     setSelectedShift,
     currencies,

@@ -155,6 +155,16 @@ const Sidebar = ({ closeSidebar, isCollapsed }) => {
             <span className="text-base">{t("salesDashboard")}</span>
           )}
         </NavLink>
+        <NavLink
+          to="/payout"
+          className={({ isActive }) =>
+            `${baseClass} ${isActive ? activeClass : normalClass}`
+          }
+          title={t("payout")}
+        >
+          <Icon icon="solar:card-bold" className="text-3xl" />
+          {!isCollapsed && <span className="text-base">{t("payout")}</span>}
+        </NavLink>
         {/* Mulai conditional rendering */}
         {showRcvAmntRoutes && (
           <>

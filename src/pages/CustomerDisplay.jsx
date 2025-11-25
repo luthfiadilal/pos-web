@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import QRCode from "react-qr-code";
 import io from "socket.io-client";
 import { useAuth } from "../contexts/AuthContext";
+import { Icon } from "@iconify/react"; // Import Iconify
 
 const CustomerDisplay = () => {
   const { user } = useAuth();
@@ -13,8 +14,50 @@ const CustomerDisplay = () => {
   const [paymentStatus, setPaymentStatus] = useState(null); // null | 'qris' | 'success'
   const [qrString, setQrString] = useState("");
   const [showSuccessNotification, setShowSuccessNotification] = useState(false);
-
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(0);
   const socketRef = useRef(null);
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+
+    return () => {
+      document.removeEventListener("fullscreenchange", handleFullscreenChange);
+    };
+  }, []);
+
+  const toggleFullScreen = () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch((err) => {
+        console.error(`Error attempting to enable full-screen mode: ${err.message}`);
+      });
+    } else {
+     if (document.exitFullscreen) {
+        document.exitFullscreen();
+      }
+    }
+  };
+
+  useEffect(() => {
+      let interval;
+      if (paymentStatus === "qris" && timeLeft > 0) {
+        interval = setInterval(() => {
+          setTimeLeft((prev) => (prev > 0 ? prev - 1 : 0));
+        }, 1000);
+      }
+      return () => clearInterval(interval);
+    }, [paymentStatus, timeLeft]);
+  
+    const formatTime = (seconds) => {
+      const m = Math.floor(seconds / 60);
+      const s = seconds % 60;
+      return `${m}:${s < 10 ? "0" : ""}${s}`;
+    };
+  
 
   useEffect(() => {
     const channel = new BroadcastChannel("customer_display");
@@ -56,6 +99,8 @@ const CustomerDisplay = () => {
           setPointsToUse(payload.pointsToUse || 0);
           setQrString(payload.qr_string);
           setPaymentStatus("qris");
+                    setTimeLeft(300);
+
           break;
 
         case "PAYMENT_END":
@@ -64,6 +109,7 @@ const CustomerDisplay = () => {
           setCartTotals(null);
           setPaymentStatus(null);
           setQrString("");
+          setTimeLeft(0);
           break;
 
         default:
@@ -102,6 +148,7 @@ const CustomerDisplay = () => {
       setQrString("");
       setCart([]);
       setCartTotals(null);
+      setTimeLeft(0);
       setShowSuccessNotification(true);
       setTimeout(() => setShowSuccessNotification(false), 3000);
     });
@@ -119,12 +166,6 @@ const CustomerDisplay = () => {
       console.log("===[CustomerDisplay] QR string state aktif:", qrString.substring(0, 50) + "...");
     }
   }, [qrString]);
-
-  const handleFullScreen = () => {
-    if (document.documentElement.requestFullscreen) {
-      document.documentElement.requestFullscreen();
-    }
-  };
 
   const renderCartItems = () => (
     <div className="flex-grow overflow-y-auto">
@@ -187,12 +228,21 @@ const CustomerDisplay = () => {
           </p>
         </div>
         <div className="flex justify-between mb-2">
-          <p>{t("tax_pb1_ppn")}</p>
+          <p>{t("tax_pb1")}</p>
           <p>
             {new Intl.NumberFormat("id-ID", {
               style: "currency",
               currency: "IDR",
-            }).format(cartTotals.totalPb1 + cartTotals.totalPpn)}
+            }).format(cartTotals.totalPb1)}
+          </p>
+        </div>
+        <div className="flex justify-between mb-2">
+          <p>{t("tax_ppn")}</p>
+          <p>
+            {new Intl.NumberFormat("id-ID", {
+              style: "currency",
+              currency: "IDR",
+            }).format(cartTotals.totalPpn)}
           </p>
         </div>
         {discountAmount > 0 && (
@@ -224,10 +274,10 @@ const CustomerDisplay = () => {
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
       <div className="bg-white rounded-2xl shadow-2xl p-10 text-center animate-fade-in-up">
         <h2 className="text-3xl font-bold text-green-600 mb-3">
-          🎉 Pembayaran Berhasil!
+          Pembayaran Berhasil!
         </h2>
         <p className="text-gray-600 text-lg">
-          Terima kasih atas pembeliannya 🙌
+          Terima kasih atas pembeliannya
         </p>
       </div>
     </div>
@@ -235,9 +285,9 @@ const CustomerDisplay = () => {
 
   const renderIdleState = () => (
     <div className="flex flex-col items-center justify-center h-full text-center">
-      <img src="/vite.svg" alt={t("company_logo")} className="w-48 h-48 mb-8" />
-      <h1 className="text-4xl font-bold">{t("company_name")}</h1>
+      <img src="/images/logo/Logo.png" alt={t("company_logo")} className="w-48 h-36 mb-8" />
       <p className="text-xl text-gray-500 mt-2">{t("welcome_message")}</p>
+      <h1 className="text-4xl font-bold">{t("company_name")}</h1>
     </div>
   );
 
@@ -273,6 +323,11 @@ const CustomerDisplay = () => {
           <h2 className="text-2xl font-semibold mb-4">
             {t("scan_to_pay_with_qris")}
           </h2>
+          <div className="mb-4">
+            <span className={`text-lg font-bold ${timeLeft < 60 ? "text-red-600 animate-pulse" : "text-gray-700"}`}>
+               {timeLeft > 0 ? `Berakhir dalam: ${formatTime(timeLeft)}` : "Waktu Habis"}
+            </span>
+          </div>
           <div className="bg-white p-8 rounded-lg shadow-lg flex items-center justify-center min-h-[300px]">
             {qrString ? (
                isUrl(qrString) ? (
@@ -337,26 +392,19 @@ const CustomerDisplay = () => {
   return (
     <div className="h-screen bg-white text-gray-800 font-sans">
       {renderContent()}
+      
       <button
-        onClick={handleFullScreen}
-        className="absolute top-4 right-4 bg-blue-500 text-white p-2 rounded-full hover:bg-blue-600"
-        title={t("go_fullscreen")}
+        onClick={toggleFullScreen}
+        className="absolute top-4 right-4 bg-blue-500 text-white p-2 rounded-full hover:bg-blue-600 z-50 transition-colors shadow-lg"
+        title={isFullscreen ? "Minimize Screen" : "Full Screen"}
       >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          className="h-6 w-6"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5v-4m0 0h-4m4 0l-5-5"
-          />
-        </svg>
+        <Icon 
+          icon={isFullscreen ? "mdi:fullscreen-exit" : "mdi:fullscreen"} 
+          width="24" 
+          height="24" 
+        />
       </button>
+      
       {showSuccessNotification && renderNotification()}
     </div>
   );
